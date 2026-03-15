@@ -92,7 +92,7 @@ def render_layered_icon(
     ### the bounding rect represents the area from which
     ### to crop the character surface
 
-    font, bounding_rect = get_objs_for_icon_rendering(
+    font, bounding_rect, highest_achieved = get_objs_for_icon_rendering(
         font_path, stroke_char, dimension_name, dimension_value
     )
 
@@ -127,11 +127,49 @@ def render_layered_icon(
 
     ### background
 
+    ## because the actual desired value for the given dimension
+    ## can't always be guaranteed, if it is the case that it isn't
+    ## acheived, here we ensure that we use the actual desired value
+    ## as a fallback value if the respective background dimension
+    ## isn't provided; otherwise, the dimension of the bounding rect
+    ## is used
+    ##
+    ## this is needed because a change introduced in pygame-ce==2.5.7
+    ## slightly changed how text is rendered, turning it impossible for
+    ## some icons to achieve the desired value (which was also causing
+    ## exceptions to be raised, crashing the app, due to the strict
+    ## requirement that the desired value must be achieved);
+    ##
+    ## because of that, we had to adjust; as a result, some of the icons
+    ## may look just slightly off, but we checked and it is not ugly or
+    ## distracting, just different;
+    ##
+    ## regardless, icon rendering in future versions of this app will
+    ## likely rely on SVG rendering, rather than text rendering, which
+    ## should be way easier to deal with and provide better results too;
+    ## so this change, despite not being ideal, prevents the crash, doesn't
+    ## make the app look ugly nor makes it any harder to be used and
+    ## will be completely removed anyway when icon rendering is updated
+    ## to rely on SVG.
+
+    fallback_width = bounding_rect.width
+    fallback_height = bounding_rect.height
+
+    if highest_achieved != dimension_value:
+
+        if dimension_name == 'width':
+            fallback_width = dimension_value
+
+        else:
+            fallback_height = dimension_value
+
+    ## calculate the size
+
     size = tuple(
         dimension + (padding * 2)
         for dimension in (
-            background_width or bounding_rect.width,
-            background_height or bounding_rect.height,
+            background_width or fallback_width,
+            background_height or fallback_height,
         )
     )
 
@@ -323,21 +361,25 @@ def get_objs_for_icon_rendering(font_path, char, dimension_name, dimension_value
             chosen_font = font
             chosen_bounding_rect = bounding_rect
 
-    ### if the highest dimension achieved isn't the same as
-    ### the desired one, raise an error to notify the user
 
-    if dimension_value != highest_dimension:
+    ### note: at this spot, outside the while loop, there was a check that
+    ### raised an error when the desired value for the given dimension wasn't
+    ### achieved; this check was removed in order to prevent a crash because
+    ### the condition it was avoiding wasn't as serious as we thought at first
+    ### and the whole icon rendering operation will be updated some time in
+    ### the future anyway;
+    ###
+    ### as a result, this function also added a third element to the tuple
+    ### returned: the highest dimension achieved (which might be the desired
+    ### one or smaller); there's a comment in the render_layered_icon function
+    ### provides additional info on the context/reasoning behind this change;
+    ### you can find it in the "if" clause where the given dimension value is
+    ### compared with the highest dimension returned by this function;
 
-        message = (
-            f"couldn't get icon of {dimension_name}"
-            f" {dimension_value} from {Path(font_path).name}"
-            " font file"
-        )
 
-        raise ValueError(message)
-
-    ### finally, return the chosen font and bounding rect
-    return chosen_font, chosen_bounding_rect
+    ### finally, return the chosen font, bounding rect and highest
+    ### achieved value for the given dimension
+    return chosen_font, chosen_bounding_rect, highest_dimension
 
 
 ### small utility
