@@ -17,6 +17,7 @@
     <li><a href="https://github.com/IndieSmiths/nodezator/releases/tag/v1.5.2">[v1.5.2] Bug fix for nodes with keyword-variable parameters</a></li>
     <li><a href="https://github.com/IndieSmiths/nodezator/releases/tag/v1.5.3">[v1.5.3] User manual utility and file manager bug fix</a></li>
     <li><a href="https://github.com/IndieSmiths/nodezator/releases/tag/v1.5.4">[v1.5.4] Renamed parent project, bug fixes and more</a></li>
+    <li><a href="https://github.com/IndieSmiths/nodezator/releases/tag/v1.5.5">[v1.5.5] Quick patch to prevent crash on launch</a></li>
 </ul>
 
 <ol>
@@ -37,6 +38,7 @@
     <li><a href="whats-new/v1-5.htsl#bug-fix-keyword-variable">v1.5.2: Bug fix for nodes with keyword-variable parameters</a></li>
     <li><a href="whats-new/v1-5.htsl#user-manual-utility-file-manager-fix">v1.5.3: User manual utility and file manager bug fix</a></li>
     <li><a href="whats-new/v1-5.htsl#renamed-parent-project-bug-fixes-more">[v1.5.4] Renamed parent project, bug fixes and more</a></li>
+    <li><a href="whats-new/v1-5.htsl#quick-patch-prevent-crash-on-launch">[v1.5.5] Quick patch to prevent crash on launch</a></li>
 
 </ol>
 
@@ -306,6 +308,18 @@
 <p>Package metadata now relies solely on the <b>pyproject.toml</b> file, instead of using the <b>setup.cfg</b> file (which we deleted, since it wasn't needed anymore). We also grab the <code>__version__</code> for the "root" <b>__init__.py</b> file from the <b>appinfo.py</b> module, making it so there's only one place where the version of the app is defined. Before this change and the usage of <b>pyproject.toml</b>, the version had to be updated in 03 different locations (the <b>__init__.py</b> and <b>appinfo.py</b> files we just mentioned plus the <b>setup.cfg</b> we mentioned earlier).</p>
 
 <p>Finally, we now also suppress a warning raised by pygame-ce versions 2.5.2 and 2.5.3 in specific circumstances. Such warning is actually a bug, which was already reported on their repository. Other than the misplaced warning, the bug is harmless though, so thankfully we only needed to suppress the warning so it doesn't confuse the users.</p>
+
+<h2 id="quick-patch-prevent-crash-on-launch">v1.5.5: Quick patch to prevent crash on launch</h2>
+
+<p>As usual, since this was a quick and simple fix/patch, I'll use an excerpt of the commit explaining the fix:</p>
+
+<blockquote>
+
+    <p>In summary, a change in pygame-ce 2.5.7 seems to have slightly changed how text is rendered, causing differences in the dimensions of the rendered characters (or at least in their bounding boxes) and those differences were raising an exception due to the discrepancy (and causing the app to crash on launch).</p>
+
+    <p>Rather than changing the values, we decided to remove the check altogether and adjust the code accordingly because the condition being flagged as an error (and thus raising an exception) wasn't as serious as we initially thought it to be.</p>
+
+</blockquote>
 
 </body>
 
